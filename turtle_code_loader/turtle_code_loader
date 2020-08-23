@@ -1,0 +1,56 @@
+diskDriveSlot = 1
+diskSlot = 2
+turtleCount = 3
+fuelSlot = 16
+
+-- Refuel first
+turtle.select(fuelSlot)
+turtle.refuel(1)
+
+turtle.up()
+
+for t=1,turtleCount do
+  turtle.forward()
+  
+  -- Place drive
+  turtle.select(diskDriveSlot)
+  turtle.placeDown()
+  
+  -- Load disk to drive
+  turtle.select(diskSlot)
+  turtle.dropDown()
+  
+  -- Run turtle
+  turtle.turnRight()
+  turtle.forward()
+  
+  local turtleToRun = peripheral.wrap("bottom")
+  if turtleToRun.isOn() then
+    turtleToRun.reboot()
+  else
+    turtleToRun.turnOn()
+  end
+  
+  turtle.back()
+  turtle.turnLeft()
+  
+  -- Pickup drive back
+  turtle.suckDown()
+  turtle.select(diskDriveSlot)
+  turtle.digDown()
+  
+end
+
+for i=1,2 do
+  turtle.turnLeft()
+end
+for t=1,turtleCount do
+  turtle.forward()
+end
+for i=1,2 do
+  turtle.turnLeft()
+end
+turtle.down()
+
+-- Shut itself down for not listening anymore.
+os.shutdown()

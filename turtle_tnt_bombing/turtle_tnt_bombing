@@ -1,0 +1,65 @@
+-- Distance itself from starting point. 
+preX = 25
+
+-- TNT & forward count.
+x = 64
+
+-- How high?
+y = 25
+
+-- Refuel first
+turtle.select(16)
+turtle.refuel()
+
+-- Move up
+for yy=1,y do
+  turtle.up()
+end
+
+-- Move forward for distancing
+for xx=1,preX do
+  turtle.forward()
+end
+
+-- Release TNTs!
+tntIndex = 1
+for xx=1,x do
+  turtle.forward()
+  
+  -- Check TNT count, if it's zero, increment index.
+  if turtle.getItemCount(tntIndex) <= 0 then
+    tntIndex = tntIndex + 1
+  end
+  
+  -- Put TNT block below
+  turtle.select(tntIndex)
+  turtle.placeDown()
+  
+  -- Fire it up
+  redstone.setOutput("bottom", true)
+end
+
+for xx=1,2 do
+  turtle.turnLeft()
+end
+
+-- Bombing done, returning base.
+print("[*] Bombing done, returning to base.")
+
+for xx=1,x do
+  turtle.forward()
+end
+for xx=1,preX do
+  turtle.forward()
+end
+
+for xx=1,2 do
+  turtle.turnLeft()
+end
+
+for yy=1,y do
+  turtle.down()
+end
+
+turtle.select(1)
+print("[*] Mission successful.")

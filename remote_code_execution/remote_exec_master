@@ -1,0 +1,42 @@
+-- Get arguments.
+remote_exec_fileName, modemSide, receiverId = ...
+protocol = "remote_exec"
+
+-- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+-- Default arguments, if not specified.
+if isEmpty(remote_exec_fileName) then
+  remote_exec_fileName = "remote_exec_code"
+end
+if isEmpty(modemSide) then
+  modemSide = "back"
+end
+
+remote_exec_filePath = (shell.dir() .. "/" .. remote_exec_fileName)
+
+-- Read code file
+remote_exec_code = fs.open(remote_exec_filePath, "r").readAll()
+
+-- Open modem.
+rednet.open(modemSide)
+
+if rednet.isOpen(modemSide) then
+  print("[*] Modem is ready, sending the code...")
+  
+  -- Send the code.
+  -- If not specified any receiver, send it to everyone.
+  if isEmpty(receiverId) then
+    rednet.broadcast(remote_exec_code, protocol)
+    print("[+] Sent the remote code to all listeners.")
+  -- Otherwise, send only to specified receiver.
+  else
+    rednet.send(tonumber(receiverId), remote_exec_code, protocol)
+    print("[+] Sent the remote code to specified receiver.")
+  end
+
+else
+  print("[!] Modem isn't open. Wrong side maybe?" .. "(tried: " .. modemSide .. ")")
+end
