@@ -11,9 +11,11 @@ Execute your code on any wireless device immediately.
 - Run `remote_exec_master <codeFileName> <modemSide> <receiverId>` on any wireless device.
 - Default parameters: `codeFileName: "remote_exec_code", modemSide: "back"`
 
-
 # Example
 
 On master: `remote_exec_master turtle_tnt_bomber right 32`
 
 On listeners: `remote_exec_recv left`
+
+- Development version of `remote_exec_master` code: `remote_exec_master_dev <codeFileName> <modemSide> <receiverId>`
+- It always looks for changes in given file, after detecting changes, sends it immediately.
