@@ -24,12 +24,7 @@ if rednet.isOpen(__modemSide) then
   
   while true do
     -- Only accept given protocol
-    while true do
-      __senderId, __message, __protocol = rednet.receive(__receiveProtocol)
-      if (__protocol == __receiveProtocol) then
-        break
-      end
-    end
+    __senderId, __message, __protocol = rednet.receive(__receiveProtocol)
     
     -- Write the code to temporary file
     file = fs.open(__tempFilePath, "w")
