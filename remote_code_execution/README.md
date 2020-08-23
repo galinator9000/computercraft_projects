@@ -4,7 +4,7 @@ Execute your code on any wireless device immediately.
 
 # Usage
 
-- Run `remote_exec_recv <modemSide>` on any wireless device. It always listens to master after running this.
+- Run `remote_exec_recv <modemSide>` on any wireless device. It always listens to master after running this. (Unless shutdown, reboot etc. obviously)
 - Default parameters: `modemSide: "right"`
 
 
