@@ -1,4 +1,16 @@
-modemSide = "right"
+-- Get arguments.
+modemSide = ...
+
+-- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+-- Default arguments, if not specified.
+if isEmpty(modemSide) then
+  modemSide = "right"
+end
+
 protocol = "remote_exec"
 tempFileName = "remote_exec_tmp"
 tempFilePath = "/" .. tempFileName
