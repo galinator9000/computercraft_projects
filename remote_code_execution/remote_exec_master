@@ -1,6 +1,6 @@
 -- Get arguments.
 remote_exec_fileName, modemSide, receiverId = ...
-protocol = "remote_exec"
+sendProtocol = "remote_exec"
 
 -- Util functions
 function isEmpty(s)
@@ -29,14 +29,16 @@ if rednet.isOpen(modemSide) then
   -- Send the code.
   -- If not specified any receiver, send it to everyone.
   if isEmpty(receiverId) then
-    rednet.broadcast(remote_exec_code, protocol)
+    rednet.broadcast(remote_exec_code, sendProtocol)
     print("[+] Sent the remote code to all listeners.")
   -- Otherwise, send only to specified receiver.
   else
-    rednet.send(tonumber(receiverId), remote_exec_code, protocol)
+    rednet.send(tonumber(receiverId), remote_exec_code, sendProtocol)
     print("[+] Sent the remote code to specified receiver.")
   end
 
 else
   print("[!] Modem isn't open. Wrong side maybe?" .. "(tried: " .. modemSide .. ")")
 end
+
+rednet.close(modemSide)
