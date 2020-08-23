@@ -37,6 +37,11 @@ if rednet.isOpen(__modemSide) then
   
     -- Delete file
     fs.delete(__tempFilePath)
+
+    -- If modem is closed by remote code, open it again.
+    if (not rednet.isOpen(__modemSide)) then
+      rednet.open(__modemSide)
+    end
     
     print("[*] Waiting for commands again...")
     print("[*] My computer ID: " .. tostring(os.getComputerID()))

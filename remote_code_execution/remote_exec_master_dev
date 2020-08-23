@@ -54,6 +54,14 @@ if rednet.isOpen(modemSide) then
         remote_exec_code = remote_exec_code_next
         break
       end
+
+      -- Check if key pressed
+      event, key = os.pullEvent("key")
+      if(key == keys.space) then
+        -- Send the code
+        print("[*] Key press detected, sending code.")
+        break
+      end
       
       sleep(0.5)
     end
