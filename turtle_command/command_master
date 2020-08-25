@@ -1,0 +1,39 @@
+-- Get arguments.
+modemSide = "back"
+sendProtocol = "command_master"
+
+-- Open modem
+rednet.open(modemSide)
+
+if rednet.isOpen(modemSide) then
+  print("[*] Modem is ready. Press ENTER to exit..")
+
+  while true do
+    -- Check if key pressed
+    message = nil
+    event, key = os.pullEvent("key")
+
+    if(key == keys.w or key == keys.up) then
+      message = "forward"
+    elseif(key == keys.s or key == keys.down) then
+      message = "back"
+    elseif(key == keys.a or key == keys.left) then
+      message = "left"
+    elseif(key == keys.d or key == keys.right) then
+      message = "right"
+    elseif(key == keys.q or key == keys.pageDown) then
+      message = "down"
+    elseif(key == keys.e or key == keys.pageUp) then
+      message = "up"
+    elseif(key == keys.enter) then
+      message = "exit"
+    end
+
+    rednet.broadcast(message, sendProtocol)
+    if message == "exit" then
+      break
+    end
+  end
+end
+
+rednet.close(modemSide)

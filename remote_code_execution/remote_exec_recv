@@ -19,8 +19,7 @@ __tempFilePath = "/" .. __tempFileName
 rednet.open(__modemSide)
 
 if rednet.isOpen(__modemSide) then
-  print("[*] Modem is ready, listening for commands.")
-  print("[*] My computer ID: " .. tostring(os.getComputerID()))
+  print("[*] Modem is ready, listening for commands. (ID: " .. tostring(os.getComputerID()) .. ")")
   
   while true do
     -- Only accept given protocol
@@ -33,7 +32,9 @@ if rednet.isOpen(__modemSide) then
     
     -- Execute remote code
     print("[+] Executing remote code...")
+    print("------- REMOTE CODE START -------")
     shell.run(__tempFilePath)
+    print("-------- REMOTE CODE END --------")
   
     -- Delete file
     fs.delete(__tempFilePath)
@@ -43,8 +44,7 @@ if rednet.isOpen(__modemSide) then
       rednet.open(__modemSide)
     end
     
-    print("[*] Waiting for commands again...")
-    print("[*] My computer ID: " .. tostring(os.getComputerID()))
+    print("[*] Waiting for commands again... (ID: " .. tostring(os.getComputerID()) .. ")")
   end
 end
 

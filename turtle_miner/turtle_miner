@@ -1,0 +1,228 @@
+fuelSlot = 16
+fuelThreshold = 10
+blockNameLookFor = "_ore"
+goLowWithoutChecking = true
+
+-- Mining field dimensions
+squareX = 25
+squareZ = 25
+squareYlevel = 9
+
+-- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+-- General turtle functions
+function checkFuel()
+  if turtle.getFuelLevel() <= fuelThreshold then
+    turtle.select(fuelSlot)
+    turtle.refuel(1)
+  end
+end
+function down(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.down())
+      if keepGoing then
+        checkFuel()
+        turtle.digDown()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function up(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.up())
+      if keepGoing then
+        checkFuel()
+        turtle.digUp()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function forward(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.forward())
+      if keepGoing then
+        checkFuel()
+        turtle.dig()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function back(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.back())
+      if keepGoing then
+        checkFuel()
+        turnLeft(2)
+        turtle.dig()
+        turnLeft(2)
+      end
+    end
+    checkRoutine()
+  end
+end
+function turnLeft(count)
+  for i=1,count do
+    turtle.turnLeft()
+  end
+end
+function turnRight(count)
+  for i=1,count do
+    turtle.turnRight()
+  end
+end
+
+-- Miner turtle functions
+oreInProgress = false
+
+function checkOreUp()
+  -- Check up
+  upSuccess, upData = turtle.inspectUp()
+  if upSuccess and not (string.find(upData.name, blockNameLookFor) == nil) then
+    up(1)
+    checkForOres()
+    down(1)
+  end
+end
+
+function checkOreDown()
+  -- Check down
+  downSuccess, downData = turtle.inspectDown()
+  if downSuccess and not (string.find(downData.name, blockNameLookFor) == nil) then
+    down(1)
+    checkForOres()
+    up(1)
+  end
+end
+
+function checkOreForward()
+  -- Check forward
+  forwardSuccess, forwardData = turtle.inspect()
+  if forwardSuccess and not (string.find(forwardData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+end
+
+function checkOreLeft()
+  -- Check left
+  turnLeft(1)
+  leftSuccess, leftData = turtle.inspect()
+  if leftSuccess and not (string.find(leftData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+  turnRight(1)
+end
+
+function checkOreRight()
+  -- Check right
+  turnRight(1)
+  rightSuccess, rightData = turtle.inspect()
+  if rightSuccess and not (string.find(rightData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+  turnLeft(1)
+end
+
+function checkForOres()
+  -- Left & Back & Right check all at once
+  checkOreLeft()
+  checkOreRight()
+
+  -- Forward
+  checkOreForward()
+
+  -- Up
+  checkOreUp()
+
+  -- Down
+  checkOreDown()
+end
+
+function checkRoutine()
+  checkFuel()
+
+  if (not oreInProgress) then
+    oreInProgress = true
+
+    -- Check for ores
+    checkForOres()
+
+    oreInProgress = false
+  end
+end
+
+---- Setup
+checkFuel()
+
+-- Get own location
+meX,meY,meZ = gps.locate()
+if ((meX == nil) or (meY == nil) or (meZ == nil)) then
+  print("[!] GPS locate failed.")
+  exit()
+end
+
+-- Dig down to digging level
+if goLowWithoutChecking then
+  oreInProgress = true
+end
+
+down(meY - squareYlevel)
+
+if goLowWithoutChecking then
+  oreInProgress = false
+end
+
+-- Even it out
+if (squareZ % 2) == 1 then
+  squareZ = squareZ + 1
+end
+
+forward(1)
+for z=1,squareZ do
+  for x=1,(squareX-1) do
+    forward(1)
+    turtle.digUp()
+  end
+
+  if (z == squareZ) then
+    turnLeft(1)
+    forward(squareZ - 1)
+    turnRight(1)
+    forward(1)
+    turnLeft(2)
+    up(meY - squareYlevel)
+  else
+    -- Take turns
+    if (z % 2) == 1 then
+      turnLeft(1)
+      forward(1)
+      turnLeft(1)
+    else
+      turnRight(1)
+      forward(1)
+      turnRight(1)
+    end
+  end
+end

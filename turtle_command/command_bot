@@ -1,0 +1,108 @@
+receiveProtocol = "command_master"
+fuelSlot = 16
+fuelThreshold = 10
+
+-- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+-- Get arguments.
+modemSide = ...
+-- Default arguments, if not specified.
+if isEmpty(modemSide) then
+  modemSide = "right"
+end
+
+-- General turtle functions
+function checkFuel()
+  if turtle.getFuelLevel() <= fuelThreshold then
+    turtle.select(fuelSlot)
+    turtle.refuel(1)
+  end
+end
+function down(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.down())
+      if keepGoing then
+        checkFuel()
+        turtle.digDown()
+      end
+    end
+    
+    checkRoutine()
+  end
+end
+function up(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.up())
+      if keepGoing then
+        checkFuel()
+        turtle.digUp()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function forward(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.forward())
+      if keepGoing then
+        checkFuel()
+        turtle.dig()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function back(count)
+  turtle.turnLeft()
+  turtle.turnLeft()
+  forward(count)
+  turtle.turnLeft()
+  turtle.turnLeft()
+end
+-- Miner turtle functions
+function checkRoutine()
+  checkFuel()
+end
+
+---- Setup
+-- Open modem
+rednet.open(modemSide)
+-- Refuel first if needed
+checkFuel()
+
+if rednet.isOpen(modemSide) then
+  print("[*] Modem is ready, waiting for master.")
+  
+  while true do
+    -- Get master's command
+    senderId, command, protocol = rednet.receive(receiveProtocol)
+
+    -- Act accordingly
+    if command == "up" then
+      up(1)
+    elseif command == "down" then
+      down(1)
+    elseif command == "forward" then
+      forward(1)
+    elseif command == "back" then
+      back(1)
+    elseif command == "left" then
+      turtle.turnLeft()
+    elseif command == "right" then
+      turtle.turnRight()
+    elseif command == "exit" then
+      break
+    end
+  end
+end
