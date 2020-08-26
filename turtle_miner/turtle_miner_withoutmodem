@@ -1,0 +1,272 @@
+-- Get Y value from player
+--print("[?] Give my Y value: ")
+meY = 80 --read()
+
+blockNameLookFor = "_ore"
+goLowWithoutChecking = true
+
+-- Item variables
+startSlot = 1
+endSlot = 16
+fuelSlot = 16
+fuelThreshold = 10
+unwantedItems = {
+  {name="minecraft:cobblestone", dropThreshold=64},
+  {name="minecraft:gravel", dropThreshold=32},
+  {name="minecraft:dirt", dropThreshold=16},
+  {name="minecraft:sand", dropThreshold=16},
+  {name="minecraft:sandstone", dropThreshold=16},
+}
+
+---- Mining field dimensions
+squareX = 25
+squareZ = 25
+squareYlevel = 13
+
+---- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+---- Turtle functions
+-- Movement functions
+function down(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.down())
+      if keepGoing then
+        checkFuel()
+        turtle.digDown()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function up(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.up())
+      if keepGoing then
+        checkFuel()
+        turtle.digUp()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function forward(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.forward())
+      if keepGoing then
+        checkFuel()
+        turtle.dig()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function back(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.back())
+      if keepGoing then
+        checkFuel()
+        turnLeft(2)
+        turtle.dig()
+        turnLeft(2)
+      end
+    end
+    checkRoutine()
+  end
+end
+function turnLeft(count)
+  for i=1,count do
+    turtle.turnLeft()
+  end
+end
+function turnRight(count)
+  for i=1,count do
+    turtle.turnRight()
+  end
+end
+
+-- Misc turtle functions
+function checkFuel()
+  if turtle.getFuelLevel() <= fuelThreshold then
+    turtle.select(fuelSlot)
+    turtle.refuel(1)
+  end
+end
+
+function checkItems()
+  -- Check if inventory is full
+  inventoryFull = true
+  for slot=startSlot,endSlot do
+    if turtle.getItemCount(slot) <= 0 then
+      inventoryFull = false
+      break
+    end
+  end
+
+  -- Check unwanted items
+  for slot=startSlot,endSlot do
+    itemData = turtle.getItemDetail(slot)
+
+    if not (itemData == nil) then
+      -- Check if it's unwanted item
+      unwanted = false
+      for u=1,#unwantedItems do
+        if (unwantedItems[u].name == itemData.name) then
+          unwanted = (true and ((itemData.count > unwantedItems[u].dropThreshold) or inventoryFull))
+          break
+        end
+      end
+
+      -- If that's the case, drop all of them
+      if (unwanted) then
+        turtle.select(slot)
+        turtle.drop(itemData.count)
+      end
+    end
+  end
+end
+
+-- Miner turtle functions
+oreInProgress = false
+function checkForOres()
+  -- Left & Back & Right check all at once
+  checkOreLeft()
+  checkOreRight()
+
+  -- Forward
+  checkOreForward()
+
+  -- Up
+  checkOreUp()
+
+  -- Down
+  checkOreDown()
+end
+
+function checkOreUp()
+  -- Check up
+  upSuccess, upData = turtle.inspectUp()
+  if upSuccess and not (string.find(upData.name, blockNameLookFor) == nil) then
+    up(1)
+    checkForOres()
+    down(1)
+  end
+end
+
+function checkOreDown()
+  -- Check down
+  downSuccess, downData = turtle.inspectDown()
+  if downSuccess and not (string.find(downData.name, blockNameLookFor) == nil) then
+    down(1)
+    checkForOres()
+    up(1)
+  end
+end
+
+function checkOreForward()
+  -- Check forward
+  forwardSuccess, forwardData = turtle.inspect()
+  if forwardSuccess and not (string.find(forwardData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+end
+
+function checkOreLeft()
+  -- Check left
+  turnLeft(1)
+  leftSuccess, leftData = turtle.inspect()
+  if leftSuccess and not (string.find(leftData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+  turnRight(1)
+end
+
+function checkOreRight()
+  -- Check right
+  turnRight(1)
+  rightSuccess, rightData = turtle.inspect()
+  if rightSuccess and not (string.find(rightData.name, blockNameLookFor) == nil) then
+    forward(1)
+    checkForOres()
+    back(1)
+  end
+  turnLeft(1)
+end
+
+function checkRoutine()
+  checkFuel()
+  checkItems()
+
+  if (not oreInProgress) then
+    oreInProgress = true
+
+    -- Check for ores
+    checkForOres()
+
+    oreInProgress = false
+  end
+end
+
+---- Setup
+-- Even it out the row count of mining field
+if (squareZ % 2) == 1 then
+  squareZ = squareZ + 1
+end
+
+-- Dig down to digging level
+if goLowWithoutChecking then oreInProgress = true end
+down(meY - squareYlevel)
+if goLowWithoutChecking then oreInProgress = false end
+
+forward(1)
+turtle.digUp()
+for z=1,squareZ do
+  for x=1,(squareX-1) do
+    forward(1)
+    turtle.digUp()
+  end
+
+  if not (z == squareZ) then
+    -- Take turns
+    if (z % 2) == 1 then
+      turnLeft(1)
+      forward(1)
+      turtle.digUp()
+      turnLeft(1)
+    else
+      turnRight(1)
+      forward(1)
+      turtle.digUp()
+      turnRight(1)
+    end
+  end
+end
+
+-- End of the dig, return starting point of mining field
+turnLeft(1)
+forward(squareZ - 1)
+turnRight(1)
+forward(1)
+turnLeft(2)
+
+-- Dont check sides while going up.
+--oreInProgress = true
+up(meY - squareYlevel)
+--oreInProgress = false

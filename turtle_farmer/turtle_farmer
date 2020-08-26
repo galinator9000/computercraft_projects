@@ -1,0 +1,236 @@
+fuelSlot = 16
+fuelThreshold = 10
+chestItemCount = 27
+seedNameLookFor = "_seeds"
+boneMealNameLookFor = ":dye"
+
+startSlot = 1
+endSlot = 15
+
+-- Farm field dimensions
+squareX = 24
+squareZ = 6
+
+wantedItems = {
+  {name="minecraft:wheat_seeds"},
+  {name="minecraft:pumpkin_seeds"},
+  {name="minecraft:melon_seeds"},
+  {name="minecraft:beetroot_seeds"},
+  {name="minecraft:dye"},
+  {name="minecraft:bone"},
+}
+
+-- Util functions
+function isEmpty(s)
+  return (s == null or s == "")
+end
+
+-- General turtle functions
+function checkFuel()
+  if turtle.getFuelLevel() <= fuelThreshold then
+    turtle.select(fuelSlot)
+    turtle.refuel(1)
+  end
+end
+function down(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.down())
+      if keepGoing then
+        checkFuel()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function up(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.up())
+      if keepGoing then
+        checkFuel()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function forward(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.forward())
+      if keepGoing then
+        checkFuel()
+      end
+    end
+
+    checkRoutine()
+  end
+end
+function back(count)
+  for i=1,count do
+    keepGoing = true
+    while keepGoing do
+      keepGoing = (not turtle.back())
+      if keepGoing then
+        checkFuel()
+      end
+    end
+    checkRoutine()
+  end
+end
+function turnLeft(count)
+  for i=1,count do
+    turtle.turnLeft()
+  end
+end
+function turnRight(count)
+  for i=1,count do
+    turtle.turnRight()
+  end
+end
+
+-- Farmer turtle functions
+function checkRoutine()
+  checkFuel()
+end
+
+function getSeedSlot()
+  for slot=startSlot,endSlot do
+    itemData = turtle.getItemDetail(slot)
+    if itemData and (not (string.find(itemData.name, seedNameLookFor) == nil)) then
+      return slot
+    end
+  end
+  return -1
+end
+
+function getBoneMealSlot()
+  for slot=startSlot,endSlot do
+    itemData = turtle.getItemDetail(slot)
+    if itemData and (not (string.find(itemData.name, boneMealNameLookFor) == nil)) then
+      return slot
+    end
+  end
+  return -1
+end
+
+function plantSeed()
+  -- If plant exists, don't do anything
+  if turtle.detectDown() then
+    return
+  end
+
+  -- Plant seed
+  while true do
+    -- Till dirt
+    turtle.digDown()
+
+    seedSlot = getSeedSlot()
+    if seedSlot == -1 then
+      print("[!] No seed!")
+      break
+    else
+      turtle.select(seedSlot)
+      turtle.placeDown()
+
+      -- Grow plants with bone meal
+      boneMealSlot = getBoneMealSlot()
+      if boneMealSlot == -1 then
+        -- print("[!] No bone meal!")
+        break
+      else
+        turtle.select(boneMealSlot)
+        keepGoing = true
+        while keepGoing do
+          keepGoing = turtle.placeDown()
+        end
+
+        itemData = turtle.getItemDetail(slot)
+        if itemData and itemData.count > 0 then
+          print("[*] Grew enough to harvest.")
+          turtle.digDown()
+        else
+          break
+        end
+      end
+    end
+  end
+end
+
+function harvest()
+  -- Harvest and plant again
+  plantSeed()
+end
+
+---- Setup
+checkFuel()
+
+---- Gather materials from chest
+turnLeft(2)
+
+-- Get all items
+for i=1,chestItemCount do
+  turtle.suck()
+end
+
+for slot=startSlot,endSlot do
+  turtle.select(slot)
+
+  itemData = turtle.getItemDetail()
+  if itemData then
+    wanted = false
+    for u=1,#wantedItems do
+      if (wantedItems[u].name == itemData.name) then
+        wanted = true
+      end
+    end
+
+    if not wanted then
+      turtle.drop()
+    end
+  end
+end
+
+turnRight(1)
+up(1)
+forward(1)
+for z=1,squareZ do
+  for x=1,(squareX) do
+    --harvest()
+    plantSeed()
+    forward(1)
+  end
+
+  if (z == squareZ) then
+    turnRight(1)
+    down(1)
+    forward((squareZ-1)*2)
+
+    -- Put everything in chest
+    for slot=startSlot,endSlot do
+      turtle.select(slot)
+      turtle.drop()
+    end
+
+    turnRight(2)
+    print("[+] My work is done.")
+  else
+    -- Take turns
+    if (z % 2) == 1 then
+      turnRight(1)
+      forward(2)
+      turnRight(1)
+      forward(1)
+    else
+      turnLeft(1)
+      forward(2)
+      turnLeft(1)
+      forward(1)
+    end
+  end
+end
